@@ -5,7 +5,10 @@ import (
 	"log"
 	"os"
 
+	"github.com/bnock/nockchat-api-go/internal/handlers"
+	"github.com/bnock/nockchat-api-go/internal/repositories"
 	"github.com/bnock/nockchat-api-go/internal/server"
+	"github.com/bnock/nockchat-api-go/internal/services"
 	"github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 )
@@ -30,9 +33,13 @@ func Serve() {
 		log.Fatal(err)
 	}
 
-	s := server.NewServer(
-		server.WithDB(db),
+	r := repositories.NewRepositories(db)
+	s := services.NewServices(r)
+	h := handlers.NewHandlers(s)
+
+	srv := server.NewServer(
+		server.WithRoutes(h),
 	)
 
-	s.Run()
+	srv.Run()
 }
