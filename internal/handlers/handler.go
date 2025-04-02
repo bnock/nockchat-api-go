@@ -11,16 +11,19 @@ import (
 type Handlers struct {
 	channelHandler  ChannelHandler
 	securityHandler SecurityHandler
+	userHandler     UserHandler
 }
 
 func NewHandlers(services *services.Services) *Handlers {
 	return &Handlers{
 		channelHandler:  *NewChannelHandler(services),
 		securityHandler: *NewSecurityHandler(services),
+		userHandler:     *NewUserHandler(services),
 	}
 }
 
-func (sh Handlers) RegisterRoutes(e *echo.Echo) {
+func (sh *Handlers) RegisterRoutes(e *echo.Echo) {
+	e.POST("/register", sh.userHandler.Register).Name = "register"
 	e.POST("/login", sh.securityHandler.Login).Name = "login"
 
 	// Protected
@@ -29,4 +32,5 @@ func (sh Handlers) RegisterRoutes(e *echo.Echo) {
 
 	protected.GET("/channels/:channel/messages", sh.channelHandler.GetChannelMessages).Name = "channelMessages"
 	protected.GET("/channels/:channel", sh.channelHandler.GetChannel).Name = "channel"
+	protected.GET("/channels", sh.channelHandler.GetChannels).Name = "channels"
 }

@@ -42,7 +42,7 @@ func (cr *ChannelRepository) ChannelById(id string) (*models.Channel, error) {
 	return &c, nil
 }
 
-func (cr *ChannelRepository) MembersByChannelID(id string) ([]models.User, error) {
+func (cr *ChannelRepository) MembersByChannelID(id string) ([]*models.User, error) {
 	rows, err := cr.DB.Query(`
 		SELECT 
 		    users.id,
@@ -66,7 +66,7 @@ func (cr *ChannelRepository) MembersByChannelID(id string) ([]models.User, error
 	}
 	defer rows.Close()
 
-	var members []models.User
+	var members []*models.User
 
 	for rows.Next() {
 		var m models.User
@@ -84,7 +84,7 @@ func (cr *ChannelRepository) MembersByChannelID(id string) ([]models.User, error
 			return nil, err
 		}
 
-		members = append(members, m)
+		members = append(members, &m)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -92,4 +92,55 @@ func (cr *ChannelRepository) MembersByChannelID(id string) ([]models.User, error
 	}
 
 	return members, nil
+}
+
+func (cr *ChannelRepository) ChannelsByUserID(id string) ([]*models.Channel, error) {
+	rows, err := cr.DB.Query(`
+		SELECT
+		    channels.id,
+		    channels.name,
+			channels.owner_id,
+			channels.created_at,
+			channels.updated_at,
+			channels.deleted_at
+		FROM
+		    channels
+			JOIN channel_user ON channel_user.channel_id = channels.id
+		WHERE
+		    channels.deleted_at IS NULL
+			AND (
+			    channels.owner_id = ?
+			    OR channel_user.user_id = ?
+			)`,
+		id,
+		id,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var channels []*models.Channel
+
+	for rows.Next() {
+		var c models.Channel
+
+		if err := rows.Scan(
+			&c.ID,
+			&c.Name,
+			&c.OwnerID,
+			&c.CreatedAt,
+			&c.UpdatedAt,
+			&c.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+
+		channels = append(channels, &c)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return channels, nil
 }

@@ -23,3 +23,12 @@ func (cs *ChannelService) GetChannelByID(id string) (*models.Channel, error) {
 
 	return c, nil
 }
+
+func (cs *ChannelService) GetChannelsByUser(u *models.User) ([]*models.Channel, error) {
+	channels, err := cs.channelRepository.ChannelsByUserID(u.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return channels, nil
+}

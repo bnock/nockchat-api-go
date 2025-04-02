@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/bnock/nockchat-api-go/internal/models"
 )
@@ -142,4 +143,27 @@ func (ur *UserRepository) UserByEmail(email string) (*models.User, error) {
 	}
 
 	return &u, nil
+}
+
+func (ur *UserRepository) CreateUser(u *models.User) error {
+	_, err := ur.DB.Exec(`
+		INSERT INTO users (
+	   		id, 
+			first_name, 
+		   	last_name, 
+		   	email, 
+	   		password, 
+		   	created_at, 
+		   	updated_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		u.ID,
+		u.FirstName,
+		u.LastName,
+		u.Email,
+		u.Password,
+		u.CreatedAt.Format(time.DateTime),
+		u.UpdatedAt.Format(time.DateTime),
+	)
+
+	return err
 }

@@ -26,6 +26,20 @@ func NewChannelHandler(services *services.Services) *ChannelHandler {
 	}
 }
 
+func (ch *ChannelHandler) GetChannels(c echo.Context) error {
+	user, err := ch.securityService.GetAuthedUser(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, "unauthenticated")
+	}
+
+	channels, err := ch.channelService.GetChannelsByUser(user)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, "unable to retrieve channels")
+	}
+
+	return c.JSON(http.StatusOK, channels)
+}
+
 func (ch *ChannelHandler) GetChannel(c echo.Context) error {
 	user, err := ch.securityService.GetAuthedUser(c)
 	if err != nil {
@@ -70,7 +84,7 @@ func (ch *ChannelHandler) GetChannelMessages(c echo.Context) error {
 }
 
 func (ch *ChannelHandler) isAllowedToViewChannel(user *models.User, channel *models.Channel) (bool, error) {
-	isMember := slices.ContainsFunc(channel.Members, func(member models.User) bool {
+	isMember := slices.ContainsFunc(channel.Members, func(member *models.User) bool {
 		return member.ID == user.ID
 	})
 
