@@ -34,4 +34,5 @@ func (sh *Handlers) RegisterRoutes(e *echo.Echo) {
 	protected.GET("/channels/:channel", sh.channelHandler.GetChannel).Name = "channel"
 	protected.GET("/channels", sh.channelHandler.GetChannels).Name = "channels"
 	protected.POST("/channels", sh.channelHandler.CreateChannel).Name = "createChannel"
+	protected.POST("/channels/:channel/messages", sh.channelHandler.CreateMessage).Name = "createMessage"
 }

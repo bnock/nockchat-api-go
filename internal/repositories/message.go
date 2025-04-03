@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/bnock/nockchat-api-go/internal/models"
 )
@@ -10,7 +11,7 @@ type MessageRepository struct {
 	DB *sql.DB
 }
 
-func (mr *MessageRepository) CreateMessage(m models.Message) error {
+func (mr *MessageRepository) CreateMessage(m *models.Message) error {
 	_, err := mr.DB.Exec(`
 		INSERT INTO messages (
 	  		id, 
@@ -20,11 +21,14 @@ func (mr *MessageRepository) CreateMessage(m models.Message) error {
 		  	sent_at, 
 		  	created_at, 
 		  	updated_at
-		) VALUES (?, ?, ?, ?, NOW(), NOW(), NOW())`,
+		) VALUES (?, ?, ?, ?, ?, ?, ?)`,
 		m.ID,
 		m.ChannelID,
 		m.SenderID,
 		m.Content,
+		m.SentAt.Format(time.DateTime),
+		m.CreatedAt.Format(time.DateTime),
+		m.UpdatedAt.Format(time.DateTime),
 	)
 
 	return err
@@ -39,6 +43,7 @@ func (mr *MessageRepository) AllByChannelID(channelID string) ([]models.Message,
 		    content,
 		    sent_at,
 		    created_at,
+		    updated_at,
 		    deleted_at
 		FROM 
 		    messages 
