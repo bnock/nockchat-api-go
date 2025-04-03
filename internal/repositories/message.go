@@ -10,7 +10,7 @@ type MessageRepository struct {
 	DB *sql.DB
 }
 
-func (mr MessageRepository) CreateMessage(m models.Message) error {
+func (mr *MessageRepository) CreateMessage(m models.Message) error {
 	_, err := mr.DB.Exec(`
 		INSERT INTO messages (
 	  		id, 
@@ -30,7 +30,7 @@ func (mr MessageRepository) CreateMessage(m models.Message) error {
 	return err
 }
 
-func (mr MessageRepository) AllByChannel(channel *models.Channel) ([]models.Message, error) {
+func (mr *MessageRepository) AllByChannelID(channelID string) ([]models.Message, error) {
 	rows, err := mr.DB.Query(`
 		SELECT 
 		    id,
@@ -44,8 +44,10 @@ func (mr MessageRepository) AllByChannel(channel *models.Channel) ([]models.Mess
 		    messages 
 		WHERE 
 		    channel_id = ? 
-		  	AND deleted_at IS NULL`,
-		channel.ID,
+		  	AND deleted_at IS NULL
+		ORDER BY 
+		    messages.sent_at DESC`,
+		channelID,
 	)
 	if err != nil {
 		return nil, err

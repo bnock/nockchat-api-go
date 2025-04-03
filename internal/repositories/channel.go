@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/bnock/nockchat-api-go/internal/models"
 )
@@ -143,4 +144,37 @@ func (cr *ChannelRepository) ChannelsByUserID(id string) ([]*models.Channel, err
 	}
 
 	return channels, nil
+}
+
+func (cr *ChannelRepository) CreateChannel(channel *models.Channel) error {
+	_, err := cr.DB.Exec(`
+		INSERT INTO channels (
+	  		id, 
+		  	name, 
+		  	owner_id, 
+		  	created_at, 
+		  	updated_at
+		) VALUES (?, ?, ?, ?, ?)`,
+		channel.ID,
+		channel.Name,
+		channel.OwnerID,
+		channel.CreatedAt.Format(time.DateTime),
+		channel.UpdatedAt.Format(time.DateTime),
+	)
+	if err != nil {
+		return err
+	}
+
+	for _, member := range channel.Members {
+		_, err := cr.DB.Exec(
+			"INSERT INTO channel_user (channel_id, user_id) VALUES (?, ?)",
+			channel.ID,
+			member.ID,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

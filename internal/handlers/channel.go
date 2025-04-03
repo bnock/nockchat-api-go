@@ -83,6 +83,30 @@ func (ch *ChannelHandler) GetChannelMessages(c echo.Context) error {
 	return c.JSON(http.StatusOK, messages)
 }
 
+func (ch *ChannelHandler) CreateChannel(c echo.Context) error {
+	user, err := ch.securityService.GetAuthedUser(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, "unauthenticated")
+	}
+
+	type in struct {
+		Name      string   `json:"name"`
+		MemberIDs []string `json:"member_ids"`
+	}
+
+	var req in
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, "unable to parse request body")
+	}
+
+	channel, err := ch.channelService.CreateChannel(user, req.Name, req.MemberIDs)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "unable to create channel")
+	}
+
+	return c.JSON(http.StatusCreated, channel)
+}
+
 func (ch *ChannelHandler) isAllowedToViewChannel(user *models.User, channel *models.Channel) (bool, error) {
 	isMember := slices.ContainsFunc(channel.Members, func(member *models.User) bool {
 		return member.ID == user.ID

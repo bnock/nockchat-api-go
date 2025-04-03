@@ -9,10 +9,14 @@ type MessageService struct {
 	messageRepository *repositories.MessageRepository
 }
 
-func (ms *MessageService) GetMessagesByChannel(channel *models.Channel) ([]models.Message, error) {
-	messages, err := ms.messageRepository.AllByChannel(channel)
+func (ms *MessageService) GetMessagesByChannel(c *models.Channel) ([]models.Message, error) {
+	messages, err := ms.messageRepository.AllByChannelID(c.ID)
 	if err != nil {
 		return nil, err
+	}
+
+	if messages == nil {
+		return make([]models.Message, 0), nil
 	}
 
 	return messages, nil
